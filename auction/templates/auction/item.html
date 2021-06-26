@@ -1,0 +1,81 @@
+{% extends "auction/layout.html" %}
+
+{% block body %}
+
+    <div class="card mb-3">
+        <div class="row no-gutters">
+            <div class="col-md-4" style="height: 400px">
+                    <img src="{{ item.image }}" alt="{{ item.title }}" style="height: 100%; width: 100%; object-fit: fill">
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h4 class="card-title"><a href="{% url 'item' item.id %}">{{ item.title }}</a></h4>
+                    <p class="card-text">{{ item.description }}</p>
+
+                    {% if highest_bid %}
+                        <div class="row no-gutters">
+                            <p class="font-weight-bold mr-1">Current bid:</p>
+                            <p class="text-secondary">{{ highest_bid.amount }}</p>
+                        </div>
+                    {% else %}
+                        <div class="row no-gutters">
+                            <p class="font-weight-bold mr-1">Starting price:</p>
+                            <p class="text-secondary">{{ item.price }}</p>
+                        </div>
+                    {% endif %}
+                    {% if request.user != item.user %}
+                        <form action="{% url 'bid' item.id %}" method="POST">
+                            {% csrf_token %}
+                            {{ bid_form.amount }}
+                            <input class="btn btn-primary" type="submit" value="Place Bid" />
+                        </form>
+                    {% else %}
+                        <form action="{% url 'close' item.id %}" method="POST">
+                            {% csrf_token %}
+                            <input class="btn btn-warning" type="submit" value="Close Auction" />
+                        </form>   
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if request.user.is_authenticated %}
+        <form action="{% url 'watchlist_toggle' item.id %}" method="POST">
+            {% csrf_token %}
+            {% if item in request.user.watchlist.all %}
+                <button type="submit">Remove From Watchlist</button>
+            {% else %}
+                <button type="submit">Add to Watchlist</button>
+            {% endif %}   
+        </form>
+    {% endif %}
+
+    {% if item.is_closed and request.user == highest_bid.user %}
+        <p>You have won the auction!</p>
+    {% elif item.is_closed %}
+        <p>Auction for this item has ended</p>
+    {% endif %}
+
+    {% if request.user.is_authenticated %}
+        <form action="{% url 'comment' item.id %}" method="POST">
+            {% csrf_token %}
+            {{ comment_form.text }}
+            <input class="btn btn-primary" type="submit" value="Post Comment" />
+        </form>
+    {% endif %}
+
+    {% for comment in comments %}
+        {{comment.user}}
+        {{comment.text}}
+    {% endfor %}
+
+    {% if message %}
+        <div class="alert alert-warning">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    
+
+{% endblock %}

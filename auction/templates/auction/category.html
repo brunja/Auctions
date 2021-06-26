@@ -1,0 +1,15 @@
+{% extends "auction/layout.html" %}
+<title>{% block title %}{{ title }}{% endblock %}</title>
+{% block body %}
+    <h2>{{ title }}</h2>
+        {% for item in items %}
+            <a href="{% url 'item' item.id %}">{{ item.title }}</a>
+            {{ item.description }}
+            {% if highest_bid %}
+                {{ highest_bid.amount }}
+            {% else %}
+                {{ item.price }}
+            {% endif %}
+            <img src="{{ item.image }}" alt="{{ item.title }}">
+        {% endfor %}
+{% endblock %}
